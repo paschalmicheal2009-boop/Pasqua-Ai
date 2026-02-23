@@ -2577,7 +2577,7 @@ async function startLockEngine(m, chatJid, ms, isAfter) {
     const msg = text.trim().toLowerCase()
     const chatJid = m.chat
     
-    const sudoNumber = "2347019135989@s.whatsapp.net"
+    const sudoNumber = "2348078511705@s.whatsapp.net"
     const isSudo = m.sender === sudoNumber
 
     if (msg.includes("lock") && !msg.includes("unlock")) return 
@@ -2604,7 +2604,7 @@ async function startLockEngine(m, chatJid, ms, isAfter) {
       }
     }
     
-    if (!msg.includes("codex") || !msg.includes("unlock the group")) return
+    if (!msg.includes("pasqua") || !msg.includes("unlock the group")) return
 
     const groupMetadata = await m.client.groupMetadata(chatJid)
     const isAlreadyUnlocked = !groupMetadata.announce 
@@ -2725,3 +2725,69 @@ async function startUnlockEngine(m, chatJid, ms, isAfter) {
     console.error("Pasqua Command Error:", err)
   }
 })
+
+// ================= PASQUA INTERFACE =================
+if (msg === "pasqua show me your interface") {
+
+  const interfaceUI = `
+╭━━━━━━━━━━━━━━━━━━╮
+┃  🤖 𝙿𝙰𝚂𝚀𝚄𝙰 𝙰𝙸  ┃
+╰━━━━━━━━━━━━━━━━━━╯
+
+🧠  Intelligent Assistant Ready
+
+📌  Some Commands:
+
+• Pasqua show me your interface
+• Pasqua remind me to lock in 5m
+• Pasqua remind me to ping in 30s
+• codex unlock the group after 10m
+• cancel  (stop active timer)
+
+⚡ Status: Online
+🛡 Owner Mode: Active
+
+_Yes sir, what shall we execute today?_`;
+
+  return await m.client.sendMessage(m.chat, { text: interfaceUI });
+}
+
+// ================= PASQUA REMINDER SYSTEM =================
+if (msg.startsWith("pasqua remind me to")) {
+
+  const timeMatch = msg.match(/(\d+)(s|m|h|d)/i)
+  if (!timeMatch) {
+    return await m.send("⏳ Sir, please specify time like 10s, 5m, 1h or 1d.");
+  }
+
+  const amount = parseInt(timeMatch[1])
+  const unit = timeMatch[2].toLowerCase()
+
+  const multipliers = {
+    s: 1000,
+    m: 60000,
+    h: 3600000,
+    d: 86400000
+  }
+
+  const ms = amount * multipliers[unit]
+
+  // Extract task
+  const task = msg
+    .replace("pasqua remind me to", "")
+    .replace(/in\s+\d+(s|m|h|d)/i, "")
+    .trim()
+
+  if (!task) {
+    return await m.send("⚠️ Sir, what exactly should I remind you to do?");
+  }
+
+  await m.send(`🧠 Reminder set successfully.\n⏳ I will remind you to *${task}* in ${amount}${unit}.`)
+
+  setTimeout(async () => {
+    await m.client.sendMessage(m.chat, {
+      text: `⏰ *REMINDER ALERT SIR!*\n\nYou asked me to *${task}*.\nTime is up! 🚀`,
+      mentions: [m.sender]
+    }).catch(() => {})
+  }, ms)
+}
