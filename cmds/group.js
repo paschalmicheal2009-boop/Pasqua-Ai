@@ -2726,31 +2726,6 @@ async function startUnlockEngine(m, chatJid, ms, isAfter) {
   }
 })
 
-// ================= PASQUA INTERFACE =================
-if (msg === "pasqua show me your interface") {
-
-  const interfaceUI = `
-╭━━━━━━━━━━━━━━━━━━╮
-┃  🤖 𝙿𝙰𝚂𝚀𝚄𝙰 𝙰𝙸  ┃
-╰━━━━━━━━━━━━━━━━━━╯
-
-🧠  Intelligent Assistant Ready
-
-📌  Some Commands:
-
-• Pasqua show me your interface
-• Pasqua remind me to lock in 5m
-• Pasqua remind me to ping in 30s
-• codex unlock the group after 10m
-• cancel  (stop active timer)
-
-⚡ Status: Online
-🛡 Owner Mode: Active
-
-_Yes sir, what shall we execute today?_`;
-
-  return await m.client.sendMessage(m.chat, { text: interfaceUI });
-}
 
 // ================= PASQUA REMINDER SYSTEM =================
 if (msg.startsWith("pasqua remind me to")) {
