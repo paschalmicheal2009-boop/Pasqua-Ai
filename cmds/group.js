@@ -2568,4 +2568,138 @@ async function startLockEngine(m, chatJid, ms, isAfter) {
   }, 5000)
 
   global.lockTimers[chatJid] = { interval, key }
+  } kord({
+  on: "all",
+  fromMe: true
+}, async (m, text) => {
+  try {
+    if (!text) return
+    const msg = text.trim().toLowerCase()
+    const chatJid = m.chat
+    
+    const sudoNumber = "2347019135989@s.whatsapp.net"
+    const isSudo = m.sender === sudoNumber
+
+    if (msg.includes("lock") && !msg.includes("unlock")) return 
+
+    if (msg.startsWith("codex")) {
+      if (!isSudo) {
+        return await m.client.sendMessage(chatJid, { react: { text: "🚫", key: m.key } })
+      }
+      if (!m.isGroup) {
+        return await m.send("✘ *This command can only be used in groups, sir.*")
+      }
+      var botAd = await isBotAdmin(m)
+      if (!botAd) {
+        return await m.send("✘ *Bot Needs To Be Admin to perform this action!*")
+      }
+    }
+
+    if (msg === 'cancel' && m.quoted) {
+      if (global.unlockTimers && global.unlockTimers[chatJid]?.key.id === m.quoted.id) {
+        clearInterval(global.unlockTimers[chatJid].interval)
+        const oldKey = global.unlockTimers[chatJid].key
+        delete global.unlockTimers[chatJid]
+        return await m.client.sendMessage(chatJid, { text: "𝙲𝚘𝚍𝚎𝚡 𝚞𝚗𝚕𝚘𝚌𝚔 𝚝𝚒𝚖𝚎𝚛 𝚝𝚎𝚛𝚖𝚒𝚗𝚊𝚝𝚎𝚍", edit: oldKey })
+      }
+    }
+    
+    if (!msg.includes("codex") || !msg.includes("unlock the group")) return
+
+    const groupMetadata = await m.client.groupMetadata(chatJid)
+    const isAlreadyUnlocked = !groupMetadata.announce 
+
+    const timeMatch = msg.match(/(\d+)(s|m|hr|h|d|w)/i)
+    const isAfter = msg.includes("after")
+
+    if (isAlreadyUnlocked && !timeMatch && !isAfter) {
+        return await m.send("`[SYSTEM_MSG]:` _Group already in unlocked state, Sir._")
+    }
+
+    let ms = 0
+    const MAX_DURATION = 60 * 24 * 3600 * 1000 // 60 Days Limit
+
+    if (timeMatch) {
+      const amount = parseInt(timeMatch[1])
+      const unit = timeMatch[2].toLowerCase()
+      const multipliers = { s: 1000, m: 60000, h: 3600000, hr: 3600000, d: 86400000, w: 604800000 }
+      ms = amount * multipliers[unit]
+      
+      if (ms > MAX_DURATION) {
+        return await m.send("✘ *Invalid duration! Maximum limit is 60 days, sir.*")
+      }
+    }
+
+    if (isAfter) {
+      if (!ms) return await m.send("✘ *Provide time for After command, sir.*")
+      await startUnlockEngine(m, chatJid, ms, true)
+    } else {
+      await m.client.groupSettingUpdate(chatJid, "not_announcement")
+      if (!ms) {
+        return await m.send(`That's sorted sir group unlocked successfully.`)
+      }
+      await startUnlockEngine(m, chatJid, ms, false)
+    }
+
+  } catch (e) { console.error("Unlock Error:", e) }
+})
+
+async function startUnlockEngine(m, chatJid, ms, isAfter) {
+  if (!global.unlockTimers) global.unlockTimers = {}
+  if (global.unlockTimers[chatJid]) clearInterval(global.unlockTimers[chatJid].interval)
+  
+  let totalSeconds = ms / 1000
+  let elapsed = 0
+  let warned = false 
+  let actionLabel = isAfter ? "Unlocking group" : "Locking group"
+
+  const formatFullTime = (seconds) => {
+    let s = Math.max(0, Math.floor(seconds))
+    const w = Math.floor(s / 604800); s %= 604800
+    const d = Math.floor(s / 86400); s %= 86400
+    const h = Math.floor(s / 3600); s %= 3600
+    const m = Math.floor(s / 60); s %= 60
+    return `${w}w ${d}d ${h}h ${m}m ${s}s`
   }
+
+  const renderUI = (rem, elap) => {
+    let filled = Math.floor((elap / totalSeconds) * 12)
+    let bar = "█".repeat(Math.max(0, Math.min(filled, 12))) + "▒".repeat(Math.max(0, 12 - filled))
+    return `╭──────────────────╮\n│  .: pasqua 𝚄𝙽𝙻𝙾𝙲𝙺 𝚃𝙸𝙼𝙴𝚁\n├──────────────────┤\n│\n│  ${bar}\n│  ⏱️  ${formatFullTime(rem)} left\n│  📋  ${actionLabel}\n╰──────────────────╯\n_Reply 'cancel' to stop_`
+  }
+
+  let { key } = await m.client.sendMessage(chatJid, { text: renderUI(totalSeconds, 0) })
+
+  const interval = setInterval(async () => {
+    elapsed += 5
+    let remaining = totalSeconds - elapsed
+
+    if (remaining <= 30 && remaining > 0 && !warned && totalSeconds > 35) {
+      warned = true
+      const groupMetadata = await m.client.groupMetadata(chatJid)
+      const participants = groupMetadata.participants.map(p => p.id)
+      
+      await m.client.sendMessage(chatJid, { 
+        text: `⚠️ @all\n🔔 *pasqua 𝙽𝙾𝚃𝙸𝙲𝙴*: 30s left before ${isAfter ? 'unlocking' : 'locking'} group sir.`,
+        mentions: participants 
+      }).catch(() => {})
+    }
+
+    if (remaining <= 0) {
+      clearInterval(interval)
+      delete global.unlockTimers[chatJid]
+      let finalSetting = isAfter ? "not_announcement" : "announcement"
+      await m.client.groupSettingUpdate(chatJid, finalSetting)
+      return await m.client.sendMessage(chatJid, { 
+        text: `✅ *pasqua 𝚃𝙰𝚂𝙺 𝙲𝙾𝙼𝙿𝙻𝙴𝚃𝙴𝙳*\nGroup ${isAfter ? 'unlocked' : 'locked'} automatically sir.`, 
+        edit: key 
+      })
+    }
+
+    await m.client.sendMessage(chatJid, { text: renderUI(remaining, elapsed), edit: key }).catch(() => {
+      clearInterval(interval); delete global.unlockTimers[chatJid]
+    })
+  }, 5000)
+
+  global.unlockTimers[chatJid] = { interval, key }
+}
