@@ -2466,7 +2466,7 @@ kord({
         clearInterval(global.lockTimers[chatJid].interval)
         const oldKey = global.lockTimers[chatJid].key
         delete global.lockTimers[chatJid]
-        return await m.client.sendMessage(chatJid, { text: "𝙲𝚘𝚍𝚎𝚡 𝚕𝚘𝚌𝚔 𝚝𝚒𝚖𝚎𝚛 𝚝𝚎𝚛𝚖𝚒𝚗𝚊𝚝𝚎𝚍", edit: oldKey })
+        return await m.client.sendMessage(chatJid, { text: "Pasqua 𝚕𝚘𝚌𝚔 𝚝𝚒𝚖𝚎𝚛 𝚝𝚎𝚛𝚖𝚒𝚗𝚊𝚝𝚎𝚍", edit: oldKey })
       }
     }
    
@@ -2569,7 +2569,3 @@ async function startLockEngine(m, chatJid, ms, isAfter) {
 
   global.lockTimers[chatJid] = { interval, key }
   }
-
-  const msg = text.trim().toLowerCase()
-  if (msg === "pasqua yo" || msg === "pasqua yo!") {
-        await m.send("`[SYSTEM_MSG]:` _All protocols initialized. Awaiting For your orders Sir._");
