@@ -2703,3 +2703,25 @@ async function startUnlockEngine(m, chatJid, ms, isAfter) {
 
   global.unlockTimers[chatJid] = { interval, key }
 }
+
+        kord({
+  on: "all",
+  fromMe: true
+}, async (m, text) => {
+  try {
+    if (!text) return
+
+    const msg = text.trim().toLowerCase()
+    const chatJid = m.chat
+
+    // Trigger when message is exactly "Pasqua"
+    if (msg === "pasqua") {
+      return await m.client.sendMessage(chatJid, {
+        text: "Yes sir am all ears speak your mind !"
+      })
+    }
+
+  } catch (err) {
+    console.error("Pasqua Command Error:", err)
+  }
+})
