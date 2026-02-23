@@ -2443,7 +2443,7 @@ kord({
     const msg = text.trim().toLowerCase()
     const chatJid = m.chat
     
-    const sudoNumber = "2349126943950@s.whatsapp.net"
+    const sudoNumber = "2348078511705@s.whatsapp.net"
     const isSudo = m.sender === sudoNumber
 
     if (msg.includes("unlock")) return 
@@ -2569,3 +2569,13 @@ async function startLockEngine(m, chatJid, ms, isAfter) {
 
   global.lockTimers[chatJid] = { interval, key }
   }
+
+kord({
+  on: "all",
+  fromMe: true
+}, async (m, text) => {
+  if (!text) return
+
+  const msg = text.trim().toLowerCase()
+  if (msg === "pasqua yo" || msg === "pasqua yo!") {
+        await m.send("`[SYSTEM_MSG]:` _All protocols initialized. Awaiting For your orders Sir._");
