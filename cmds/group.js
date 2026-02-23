@@ -2430,6 +2430,10 @@ cmd: "kickr",
     return await m.sendErr(e)
   }
 })
+
+
+
+
 kord({
   on: "all",
   fromMe: true
